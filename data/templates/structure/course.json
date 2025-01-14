@@ -1,0 +1,15 @@
+{
+  "root": {
+    "lectures": {
+      "chapters": {},
+      "build": {},
+      "figures": {},
+      "bibliography.bib": "/Users/max/course-manager/data/templates/files/lecture/lecture-bibliography.bib",
+      "lec-master.tex": "/Users/max/course-manager/data/templates/files/lecture/lecture-master.tex",
+      "lec-master.tex.latexmain": "/Users/max/course-manager/data/templates/files/lecture/lecture-latexmain.tex"
+    },
+    "assignments": {},
+    ".due-dates.json": "/Users/max/course-manager/data/templates/files/due-dates.json",
+    "preamble.tex": "/Users/max/course-manager/data/templates/files/lecture/lecture-preamble.tex"
+  }
+}

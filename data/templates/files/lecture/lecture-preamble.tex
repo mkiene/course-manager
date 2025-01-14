@@ -1,0 +1,373 @@
+% basics
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+% \usepackage[dutch]{babel}
+\usepackage{url}
+% \usepackage{hyperref}
+% \hypersetup{
+%     colorlinks,
+%     linkcolor={black},
+%     citecolor={black},
+%     urlcolor={blue!80!black}
+% }
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{enumitem}
+% \usepackage{parskip}
+\usepackage{emptypage}
+\usepackage{subcaption}
+\usepackage{multicol}
+\usepackage[usenames,dvipsnames]{xcolor}
+
+% \usepackage[none]{hyphenat}
+
+% \usepackage{cmbright}
+
+
+\usepackage{amsmath, amsfonts, mathtools, amsthm, amssymb}
+\usepackage{physics}
+\usepackage{gensymb}
+\usepackage{tabularray}
+\usepackage{mathrsfs}
+\usepackage{cancel}
+\usepackage{bm}
+\newcommand\N{\ensuremath{\mathbb{N}}}
+\newcommand\R{\ensuremath{\mathbb{R}}}
+\newcommand\Z{\ensuremath{\mathbb{Z}}}
+\renewcommand\O{\ensuremath{\emptyset}}
+\newcommand\Q{\ensuremath{\mathbb{Q}}}
+\newcommand\C{\ensuremath{\mathbb{C}}}
+\DeclareMathOperator{\sgn}{sgn}
+\usepackage{systeme}
+\let\svlim\lim\def\lim{\svlim\limits}
+\let\implies\Rightarrow
+\let\impliedby\Leftarrow
+\let\iff\Leftrightarrow
+	\let\epsilon\varepsilon
+	\usepackage{stmaryrd} % for \lightning
+	\newcommand\contra{\scalebox{1.1}{$\lightning$}}
+	% \let\phi\varphi
+
+
+	% Don't indent paragraphs, leave some space between them
+
+	\usepackage{parskip}
+
+
+	% correct
+	\definecolor{correct}{HTML}{009900}
+	\newcommand\correct[2]{\ensuremath{\:}{\color{red}{#1}}\ensuremath{\to }{\color{correct}{#2}}\ensuremath{\:}}
+	\newcommand\green[1]{{\color{correct}{#1}}}
+
+
+
+	% horizontal rule
+	\newcommand\hr{
+		\noindent\rule[0.5ex]{\linewidth}{0.5pt}
+	}
+
+
+	% hide parts
+	\newcommand\hide[1]{}
+
+
+
+	% si unitx
+	\usepackage{siunitx}
+	\sisetup{locale = FR}
+	% \renewcommand\vec[1]{\mathbf{#1}}
+	\newcommand\mat[1]{\mathbf{#1}}
+
+
+	% tikz
+	\usepackage{tikz}
+	\usepackage{tikz-cd}
+	\usetikzlibrary{intersections, angles, quotes, calc, positioning}
+	\usetikzlibrary{arrows.meta}
+	\usetikzlibrary{babel}
+	\usepackage{pgfplots}
+	\pgfplotsset{
+		compat=newest,
+		table/search path={build/},
+	}
+
+	\tikzset{
+		force/.style={thick, {Circle[length=2pt]}-stealth, shorten <=-1pt}
+	}
+
+	\newcounter{examplecounter}[section]
+
+	% Syntax: \colorboxed[<color model>]{<color specification>}{<math formula>}
+	\newcommand*{\colorboxed}{}
+	\def\colorboxed#1#{%
+	\colorboxedAux{#1}%
+	}
+	\newcommand*{\colorboxedAux}[3]{%
+		% #1: optional argument for color model
+		% #2: color specification
+		% #3: formula
+		\begingroup
+		\colorlet{cb@saved}{.}%
+		\color#1{#2}%
+		\boxed{%
+			\color{cb@saved}%
+			#3%
+		}%
+		\endgroup
+	}
+
+	\makeatletter
+	\newcommand*\Acolorboxed[2][red]{%
+		\let\bgroup{\romannumeral-`}%
+		\@Acolorboxed{#1}#2&&\ENDDNE
+	}
+	\def\@Acolorboxed#1#2&#3&#4\ENDDNE{%
+		\ifnum0=`{}\fi
+		\setbox\z@\hbox{$\displaystyle#2{}\m@th$\kern\fboxsep \kern\fboxrule}%
+		\edef\@tempa{\kern\wd\z@ & \kern-\the\wd\z@ \fboxsep\the\fboxsep \fboxrule\the\fboxrule}%
+		\@tempa
+		\fcolorbox{#1}{white}{\m@th$\displaystyle#2#3$}%
+	}
+	\makeatother
+
+	% theorems
+	\makeatother
+	\usepackage{thmtools}
+	\usepackage[framemethod=TikZ]{mdframed}
+	\mdfsetup{skipabove=1em,skipbelow=0em}
+
+	% themes
+	\newcommand\examplecolor{DarkOrchid}
+	\newcommand\solutioncolor{DarkOrchid}
+	\newcommand\definitioncolor{ForestGreen}
+
+	\theoremstyle{definition}
+
+	\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\definitioncolor!70!black}, bodyfont=\normalfont,
+	mdframed={
+	linewidth=2pt,
+	leftline=false,
+	rightline=false,
+	topline=false,
+	bottomline=false,
+	linecolor=\definitioncolor,
+	backgroundcolor=\definitioncolor!3,
+	splitbottomskip=3em,
+	splittopskip=0em,
+	afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\definitioncolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\definitioncolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+}
+]{thmdefinitionbox}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{NavyBlue!70!black}, bodyfont=\normalfont,
+	mdframed={
+			linewidth=2pt,
+			leftline=false, rightline=false, topline=false, bottomline=false,
+			linecolor=NavyBlue, backgroundcolor=NavyBlue!3,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
+]{thmbluebox}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{NavyBlue!70!black}, bodyfont=\normalfont,
+	mdframed={
+			linewidth=2pt,
+			leftline=false, rightline=false, topline=false, bottomline=false,
+			linecolor=NavyBlue,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
+]{thmblueline}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\examplecolor!70!black}, bodyfont=\normalfont,
+	mdframed={
+			linewidth=2pt,
+			leftline=false, rightline=false, topline=false, bottomline=false,
+			linecolor=\examplecolor, backgroundcolor=\examplecolor!3,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\examplecolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\examplecolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
+]{thmexamplebox}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{NavyBlue!70!black}, bodyfont=\normalfont,
+	numbered=no,
+	mdframed={
+			linewidth=2pt,
+			leftline=false, rightline=false, topline=false, bottomline=false,
+			linecolor=NavyBlue, backgroundcolor=NavyBlue!3,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		},
+	qed=\qedsymbol
+]{thmproofbox}
+
+\usepackage[absolute,overlay]{textpos}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\solutioncolor!70!black}, bodyfont=\normalfont,
+	numbered=no,
+	mdframed={
+			linewidth=2pt,
+			leftline=false, rightline=false, topline=false, bottomline=false,
+			linecolor=\solutioncolor, backgroundcolor=\solutioncolor!0,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\solutioncolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\solutioncolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		},
+	qed=\qedsymbol
+]{thmsolutionbox}
+
+% \declaretheoremstyle[headfont=\bfseries\sffamily, bodyfont=\normalfont, mdframed={ nobreak } ]{thmgreenbox}
+% \declaretheoremstyle[headfont=\bfseries\sffamily, bodyfont=\normalfont, mdframed={ nobreak } ]{thmredbox}
+% \declaretheoremstyle[headfont=\bfseries\sffamily, bodyfont=\normalfont]{thmbluebox}
+% \declaretheoremstyle[headfont=\bfseries\sffamily, bodyfont=\normalfont]{thmblueline}
+% \declaretheoremstyle[headfont=\bfseries\sffamily, bodyfont=\normalfont, numbered=no, mdframed={ rightline=false, topline=false, bottomline=false, }, qed=\qedsymbol ]{thmproofbox}
+% \declaretheoremstyle[headfont=\bfseries\sffamily, bodyfont=\normalfont, numbered=no, mdframed={ nobreak, rightline=false, topline=false, bottomline=false } ]{thmexplanationbox}
+
+\declaretheorem[style=thmdefinitionbox, name=Definition]{definition}
+\declaretheorem[style=thmexamplebox, name=Example, sibling=examplecounter]{eg}
+\declaretheorem[style=thmbluebox, name=Proposition]{prop}
+\declaretheorem[style=thmbluebox, name=Theorem]{theorem}
+\declaretheorem[style=thmbluebox, name=Lemma]{lemma}
+\declaretheorem[style=thmbluebox, numbered=no, name=Corollary]{corollary}
+
+\declaretheorem[style=thmproofbox, name=$\bm{\hookrightarrow}$ Proof]{replacementproof}
+\renewenvironment{proof}[1][\proofname]{\vspace{-10pt}\begin{replacementproof}}{\end{replacementproof}}
+
+\declaretheorem[style=thmsolutionbox, name=$\bm{\hookrightarrow}$ Solution]{tmpsolution}
+\newenvironment{solution}[1][]{\vspace{-10pt}\begin{tmpsolution}~}{\end{tmpsolution}}
+
+\declaretheorem[style=thmblueline, numbered=no, name=Remark]{remark}
+\declaretheorem[style=thmblueline, numbered=no, name=Note]{note}
+
+\newtheorem*{uovt}{UOVT}
+\newtheorem*{notation}{Notation}
+\newtheorem*{previouslyseen}{As previously seen}
+\newtheorem*{problem}{Problem}
+\newtheorem*{observe}{Observe}
+\newtheorem*{property}{Property}
+\newtheorem*{intuition}{Intuition}
+
+\usepackage{etoolbox}
+\AtEndEnvironment{vb}{\null\hfill$\diamond$}%
+\AtEndEnvironment{intermezzo}{\null\hfill$\diamond$}%
+% \AtEndEnvironment{opmerking}{\null\hfill$\diamond$}%
+
+% http://tex.stackexchange.com/questions/22119/how-can-i-change-the-spacing-before-theorems-with-amsthm
+\makeatletter
+% \def\thm@space@setup{%
+%   \thm@preskip=\parskip \thm@postskip=0pt
+% }
+
+\newcommand{\oefening}[1]{%
+	\def\@oefening{#1}%
+	\subsection*{Oefening #1}
+}
+
+\newcommand{\suboefening}[1]{%
+	\subsubsection*{Oefening \@oefening.#1}
+}
+
+\newcommand{\exercise}[1]{%
+	\def\@exercise{#1}%
+	\subsection*{Exercise #1}
+}
+
+\newcommand{\subexercise}[1]{%
+	\subsubsection*{Exercise \@exercise.#1}
+}
+
+
+\usepackage{xifthen}
+
+\def\testdateparts#1{\dateparts#1\relax}
+\def\dateparts#1 #2 #3 #4 #5\relax{
+	\marginpar{\small\textsf{\mbox{#1 #2 #3 #5}}}
+}
+
+\def\@lesson{}%
+\newcommand{\lesson}[3]{
+	\ifthenelse{\isempty{#3}}{%
+		\def\@lesson{Lecture #1}%
+	}{%
+		\def\@lesson{Lecture #1: #3}%
+	}%
+	\subsection*{\@lesson}
+	\testdateparts{#2}
+}
+
+% \renewcommand\date[1]{\marginpar{#1}}
+
+
+% fancy headers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\fancyhead[LE,RO]{Max Kiene}
+\fancyhead[RO,LE]{\@lesson}
+\fancyhead[RE,LO]{}
+\fancyfoot[LE,RO]{\thepage}
+\fancyfoot[C]{\leftmark}
+
+\makeatother
+
+
+
+
+% notes
+\usepackage{todonotes}
+\usepackage{tcolorbox}
+
+\tcbuselibrary{breakable}
+\newenvironment{verbetering}{\begin{tcolorbox}[
+			arc=0mm,
+			colback=white,
+			colframe=green!60!black,
+			title=Opmerking,
+			fonttitle=\sffamily,
+			breakable
+		]}{\end{tcolorbox}}
+
+\newenvironment{noot}[1]{\begin{tcolorbox}[
+			arc=0mm,
+			colback=white,
+			colframe=white!60!black,
+			title=#1,
+			fonttitle=\sffamily,
+			breakable
+		]}{\end{tcolorbox}}
+
+
+
+
+% figure support
+\usepackage{import}
+\usepackage{xifthen}
+\pdfminorversion=7
+\usepackage{pdfpages}
+\usepackage{transparent}
+\newcommand{\incfig}[2][0.3\textwidth]{%
+	\def\svgwidth{#1}
+	\import{./figures/}{#2.pdf_tex}
+}
+
+% %http://tex.stackexchange.com/questions/76273/multiple-pdfs-with-page-group-included-in-a-single-page-warning
+\pdfsuppresswarningpagegroup=1
+
+\author{Max Kiene}
