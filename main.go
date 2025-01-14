@@ -62,7 +62,7 @@ func handle_input() {
 			create_chapter_with_form()
 		case "--open-lecture":
 			open_lecture_with_form()
-		case "--show-tree":
+		case "--tree":
 			var semesters_list []string
 
 			for _, s := range Semesters {

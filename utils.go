@@ -311,7 +311,7 @@ func set_currents() {
 				Options(huh.NewOptions(semester_titles...)...).
 				Value(&chosen_semester),
 		),
-	)
+	).WithTheme(huh.ThemeBase())
 
 	semester_form.Run()
 
@@ -336,7 +336,7 @@ func set_currents() {
 				Options(huh.NewOptions(course_titles...)...).
 				Value(&chosen_course),
 		),
-	)
+	).WithTheme(huh.ThemeBase())
 
 	course_form.Run()
 
@@ -361,7 +361,7 @@ func set_currents() {
 				Options(huh.NewOptions(chapter_titles...)...).
 				Value(&chosen_chapter),
 		),
-	)
+	).WithTheme(huh.ThemeBase())
 
 	chapter_form.Run()
 
@@ -386,7 +386,7 @@ func set_currents() {
 				Options(huh.NewOptions(lecture_titles...)...).
 				Value(&chosen_lecture),
 		),
-	)
+	).WithTheme(huh.ThemeBase())
 
 	lecture_form.Run()
 

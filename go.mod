@@ -1,4 +1,4 @@
-module github.com/mkiene/cman
+module github.com/mkiene/cmgr
 
 go 1.23.2
 

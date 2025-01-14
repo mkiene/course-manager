@@ -242,7 +242,7 @@ func create_lecture_with_form() error {
 					}, &title).
 				Value(&confirmed),
 		).WithHeight(30),
-	)
+	).WithTheme(huh.ThemeBase())
 
 	form.Run()
 
@@ -299,7 +299,7 @@ func open_lecture_with_form() error {
 					}, &chosen_lecture,
 				),
 		).WithHeight(30),
-	)
+	).WithTheme(huh.ThemeBase())
 
 	form.Run()
 

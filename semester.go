@@ -115,6 +115,7 @@ func create_semester_with_form() error {
 				}),
 
 			huh.NewNote().
+				Title("Filetree").
 				DescriptionFunc(
 					func() string {
 
@@ -139,11 +140,18 @@ func create_semester_with_form() error {
 			huh.NewConfirm().
 				TitleFunc(
 					func() string {
-						return fmt.Sprintf("Create '%s'?", title)
+
+						display_title := "Untitled"
+
+						if title != "" {
+							display_title = title
+						}
+
+						return fmt.Sprintf("Create '%s'?", display_title)
 					}, &title).
 				Value(&confirmed),
 		).WithHeight(30),
-	)
+	).WithTheme(huh.ThemeBase())
 
 	form.Run()
 

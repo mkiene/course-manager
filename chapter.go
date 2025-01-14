@@ -246,7 +246,7 @@ func create_chapter_with_form() error {
 					}, &title).
 				Value(&confirmed),
 		).WithHeight(30),
-	)
+	).WithTheme(huh.ThemeBase())
 
 	form.Run()
 
