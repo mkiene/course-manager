@@ -127,11 +127,9 @@ func create_chapter(title string, course *Course) (*Chapter, error) {
 
 	populate_latex_fields(filepath.Join(course.Path, CHAPTERS_PATH, title, CHAPTER_COMPOSITE_PATH), placeholders)
 
-	add_chapter_to_latex_mainfile(filepath.Join(course.Path, LECTURES_MASTER_PATH), filepath.Join(course.Path, CHAPTERS_PATH, title, CHAPTER_COMPOSITE_PATH))
-
-	new_chapter := &Chapter {
-		Title: title,
-		Path: filepath.Join(course.Path, CHAPTERS_PATH, title),
+	new_chapter := &Chapter{
+		Title:  title,
+		Path:   filepath.Join(course.Path, CHAPTERS_PATH, title),
 		Parent: course,
 	}
 
@@ -139,10 +137,12 @@ func create_chapter(title string, course *Course) (*Chapter, error) {
 
 	set_current_chapter(new_chapter)
 
+	add_chapter_to_latex_mainfile(new_chapter, filepath.Join(course.Path, LECTURES_MASTER_PATH), filepath.Join(course.Path, CHAPTERS_PATH, title, CHAPTER_COMPOSITE_PATH))
+
 	return new_chapter, nil
 }
 
-func add_chapter_to_latex_mainfile(main_path, chapter_path string) error {
+func add_chapter_to_latex_mainfile(chap *Chapter, main_path, chapter_path string) error {
 	// Read the LaTeX file
 	data, err := os.ReadFile(main_path)
 	if err != nil {
@@ -158,7 +158,7 @@ func add_chapter_to_latex_mainfile(main_path, chapter_path string) error {
 	}
 
 	// Build the `\input{}` line
-	new_chapter := fmt.Sprintf("\\input{%s}", chapter_path)
+	new_chapter := fmt.Sprintf("\\input{%s} %% %s", chapter_path, chap.Title)
 
 	// Check if the chapter already exists
 	if strings.Contains(content, new_chapter) {
@@ -201,7 +201,55 @@ func add_chapter_to_latex_mainfile(main_path, chapter_path string) error {
 	return nil
 }
 
+func remove_chapter_from_latex_mainfile(chapTitle, mainPath string) error {
+	// Read the LaTeX file
+	data, err := os.ReadFile(mainPath)
+	if err != nil {
+		return fmt.Errorf("error reading latex mainfile: %v", err)
+	}
+	content := string(data)
+
+	// Split content into lines
+	lines := strings.Split(content, "\n")
+
+	// Track if the chapter was removed
+	removed := false
+
+	// Loop through lines to find and remove the chapter
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		// Check if the line is an `\input{}` line and contains the chapter title
+		if strings.HasPrefix(trimmed, `\input{`) && strings.Contains(trimmed, fmt.Sprintf("%% %s", chapTitle)) {
+			// Remove the line
+			lines = append(lines[:i], lines[i+1:]...)
+			removed = true
+			break
+		}
+	}
+
+	// If no chapter was removed, return an error
+	if !removed {
+		return fmt.Errorf("chapter '%s' not found in the mainfile", chapTitle)
+	}
+
+	// Join the lines back into a single string
+	updatedContent := strings.Join(lines, "\n")
+
+	// Write the updated content back to the file
+	err = os.WriteFile(mainPath, []byte(updatedContent), 0755)
+	if err != nil {
+		return fmt.Errorf("error writing updated mainfile: %v", err)
+	}
+
+	return nil
+}
+
 func create_chapter_with_form() error {
+
+	if CURRENT_COURSE == nil {
+		show_warning("No courses exist. Try creating one!")
+		return fmt.Errorf("Current course doesn't exist.")
+	}
 
 	var title string
 	var confirmed bool
@@ -240,15 +288,18 @@ func create_chapter_with_form() error {
 
 						return tree_style.Render(t.String())
 					}, &title,
-				),
+				).Height(len(CURRENT_COURSE.Children) + 5),
 
 			huh.NewConfirm().
 				TitleFunc(
 					func() string {
+						if title == "" {
+							return fmt.Sprint("Create 'Untitled'?")
+						}
 						return fmt.Sprintf("Create '%s'?", title)
 					}, &title).
 				Value(&confirmed),
-		).WithHeight(30),
+		).Title("Creating a new Chapter"),
 	).WithTheme(huh.ThemeBase())
 
 	form.Run()
@@ -266,4 +317,84 @@ func create_chapter_with_form() error {
 	}
 
 	return nil
+}
+
+func remove_chapter_with_form() error {
+
+	var choices []string
+	confirmed := false
+	double_confirmed := false
+
+	var options []string
+
+	for _, s := range CURRENT_COURSE.Children {
+		options = append(options, s.Title)
+	}
+
+	form := huh.NewForm(
+
+		huh.NewGroup(
+
+			huh.NewMultiSelect[string]().
+				Title("Choose Chapter(s) to delete").
+				Options(huh.NewOptions(options...)...).
+				Value(&choices).
+				Validate(func(s []string) error {
+					if len(choices) < 1 {
+						return fmt.Errorf("You must choose course(s) to delete!")
+					}
+					return nil
+				}),
+
+			huh.NewConfirm().
+				Title("Make a selection").
+				TitleFunc(
+					func() string {
+						return fmt.Sprintf("Irreversibly delete '%s'?", choices)
+					}, &choices).
+				Value(&confirmed),
+
+			huh.NewConfirm().
+				Title("Make a selection").
+				TitleFunc(
+					func() string {
+						return fmt.Sprintf("Are you sure you want to irreversibly delete '%s'?", choices)
+					}, &choices).
+				Value(&double_confirmed),
+		),
+	)
+
+	err := form.Run()
+
+	if err != nil {
+		return err
+	}
+
+	if confirmed && double_confirmed {
+
+		for _, choice := range choices {
+			chapter, err := find_chapter(choice, CURRENT_COURSE)
+
+			if err != nil || chapter == nil {
+				return fmt.Errorf("Could not find chapter '%s'.", choice)
+			}
+
+			os.RemoveAll(chapter.Path) // remove from filestructure
+
+			CURRENT_COURSE.Children = remove_chapter(CURRENT_COURSE.Children, chapter)
+
+			remove_chapter_from_latex_mainfile(chapter.Title, filepath.Join(CURRENT_COURSE.Path, LECTURES_MASTER_PATH))
+		}
+	}
+
+	return nil
+}
+
+func remove_chapter(chapters []*Chapter, toRemove *Chapter) []*Chapter {
+	for i, chapter := range chapters {
+		if chapter == toRemove {
+			return append(chapters[:i], chapters[i+1:]...)
+		}
+	}
+	return chapters
 }

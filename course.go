@@ -105,6 +105,11 @@ func create_course(title string, semester *Semester) (*Course, error) {
 
 func create_course_with_form() error {
 
+	if CURRENT_SEMESTER == nil {
+		show_warning("No semesters exist. Try creating one!")
+		return fmt.Errorf("Current semester doesn't exist.")
+	}
+
 	var title string
 	var confirmed bool
 
@@ -123,6 +128,7 @@ func create_course_with_form() error {
 				}),
 
 			huh.NewNote().
+				Title("Filetree").
 				DescriptionFunc(
 					func() string {
 
@@ -142,15 +148,18 @@ func create_course_with_form() error {
 
 						return tree_style.Render(t.String())
 					}, &title,
-				),
+				).Height(len(CURRENT_SEMESTER.Children)+5),
 
 			huh.NewConfirm().
 				TitleFunc(
 					func() string {
+						if title == "" {
+							return fmt.Sprint("Create 'Untitled'?")
+						}
 						return fmt.Sprintf("Create '%s'?", title)
 					}, &title).
 				Value(&confirmed),
-		).WithHeight(30),
+		).Title("Creating a new Course"),
 	).WithTheme(huh.ThemeBase())
 
 	form.Run()
@@ -168,4 +177,86 @@ func create_course_with_form() error {
 	}
 
 	return nil
+}
+
+func remove_course_with_form() error {
+
+	if len(Semesters) < 1 {
+		return nil
+	}
+
+	var choices []string
+	confirmed := false
+	double_confirmed := false
+
+	var options []string
+
+	for _, s := range CURRENT_SEMESTER.Children {
+		options = append(options, s.Title)
+	}
+
+	form := huh.NewForm(
+
+		huh.NewGroup(
+
+			huh.NewMultiSelect[string]().
+				Title("Choose a Course to delete").
+				Options(huh.NewOptions(options...)...).
+				Value(&choices).
+				Validate(func(s []string) error {
+					if len(choices) < 1 {
+						return fmt.Errorf("You must choose a course(s) to delete!")
+					}
+					return nil
+				}),
+
+			huh.NewConfirm().
+				Title("Make a selection").
+				TitleFunc(
+					func() string {
+						return fmt.Sprintf("Irreversibly delete '%s'?", choices)
+					}, &choices).
+				Value(&confirmed),
+
+			huh.NewConfirm().
+				Title("Make a selection").
+				TitleFunc(
+					func() string {
+						return fmt.Sprintf("Are you sure you want to irreversibly delete '%s'?", choices)
+					}, &choices).
+				Value(&double_confirmed),
+		),
+	)
+
+	err := form.Run()
+
+	if err != nil {
+		return err
+	}
+
+	if confirmed && double_confirmed {
+
+		for _, choice := range choices {
+			course, err := find_course(choice, CURRENT_SEMESTER)
+
+			if err != nil || course == nil {
+				return fmt.Errorf("Could not find course '%s'.", choice)
+			}
+
+			os.RemoveAll(course.Path) // remove from filestructure
+
+			CURRENT_SEMESTER.Children = remove_course(CURRENT_SEMESTER.Children, course)
+		}
+	}
+
+	return nil
+}
+
+func remove_course(courses []*Course, toRemove *Course) []*Course {
+	for i, course := range courses {
+		if course == toRemove {
+			return append(courses[:i], courses[i+1:]...)
+		}
+	}
+	return courses
 }

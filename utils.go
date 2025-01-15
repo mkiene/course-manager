@@ -166,16 +166,13 @@ func build_tree(node interface{}) *tree.Tree {
 
 func update_tree() {
 
-	// First, find all semesters under the specified directory in the config file
 	semesters_dir := filepath.Join(ROOT_DIR, SEMESTERS_DIR)
 
 	get_semesters(semesters_dir)
 
-	// Next, find all of the retrieved semester's courses
 	for _, s := range Semesters {
 		get_courses(s)
 
-		// For each course, find all chapters and lectures
 		for _, co := range s.Children {
 			get_chapters(co)
 
@@ -235,6 +232,10 @@ func populate_latex_fields(path string, placeholders map[string]string) error {
 }
 
 func get_currents() error {
+
+	if len(Semesters) < 1 {
+		return nil
+	}
 
 	current_semester_title, err := get_json_value(CONFIG_DIR, "current-semester")
 
@@ -304,6 +305,11 @@ func get_currents() error {
 }
 
 func set_currents() {
+
+	if len(Semesters) < 1 {
+		show_warning("No semesters exist. Try creating one!")
+		return
+	}
 
 	var semester_titles []string
 
@@ -578,3 +584,36 @@ func set_current_lecture(lecture *Lecture) error {
 
 	return nil
 }
+
+func choose_create_form() {
+
+	var choice string
+
+	options := huh.NewOptions("Semester", "Course", "Chapter", "Lecture")
+
+	form := huh.NewForm(
+
+		huh.NewGroup(
+
+			huh.NewSelect[string]().
+				Title("Choose something to create").
+				Options(options...).
+				Value(&choice),
+		),
+	).WithTheme(huh.ThemeBase())
+
+	form.Run()
+
+	switch choice {
+	case "Semester":
+		create_semester_with_form()
+	case "Course":
+		create_course_with_form()
+	case "Chapter":
+		create_chapter_with_form()
+	case "Lecture":
+		create_lecture_with_form()
+	}
+}
+
+

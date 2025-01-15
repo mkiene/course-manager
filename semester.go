@@ -137,7 +137,7 @@ func create_semester_with_form() error {
 
 						return tree_style.Render(t.String())
 					}, &title,
-				),
+				).Height(len(Semesters)+5),
 
 			huh.NewConfirm().
 				TitleFunc(
@@ -152,7 +152,7 @@ func create_semester_with_form() error {
 						return fmt.Sprintf("Create '%s'?", display_title)
 					}, &title).
 				Value(&confirmed),
-		).WithHeight(30),
+		).Title("Creating a new Semester"),
 	).WithTheme(huh.ThemeBase())
 
 	form.Run()
@@ -170,4 +170,87 @@ func create_semester_with_form() error {
 	}
 
 	return nil
+}
+
+func remove_semester_with_form() error {
+
+	if len(Semesters) < 1 {
+		return nil
+	}
+
+	var choices []string
+	confirmed := false
+	double_confirmed := false
+
+	var options []string
+
+	for _, s := range Semesters {
+		options = append(options, s.Title)
+	}
+
+	form := huh.NewForm(
+
+		huh.NewGroup(
+
+			huh.NewMultiSelect[string]().
+				Title("Choose a Semester to delete").
+				Options(huh.NewOptions(options...)...).
+				Value(&choices).
+				Validate(func(s []string) error {
+					if len(choices) < 1 {
+						return fmt.Errorf("You must choose a semester(s) to delete!")
+					}
+					return nil
+				}),
+
+			huh.NewConfirm().
+				Title("Make a selection").
+				TitleFunc(
+					func() string {
+						return fmt.Sprintf("Irreversibly delete '%s'?", choices)
+					}, &choices).
+				Value(&confirmed),
+
+			huh.NewConfirm().
+				Title("Make a selection").
+				TitleFunc(
+					func() string {
+						return fmt.Sprintf("Are you sure you want to irreversibly delete '%s'?", choices)
+					}, &choices).
+				Value(&double_confirmed),
+		),
+	)
+
+	err := form.Run()
+
+	if err != nil {
+		return err
+	}
+
+	if confirmed && double_confirmed {
+
+		for _, choice := range choices {
+			sem, err := find_semester(choice)
+
+			if err != nil || sem == nil {
+				return fmt.Errorf("Could not find semester '%s'.", choice)
+			}
+
+			os.RemoveAll(sem.Path) // remove from filestructure
+
+			Semesters = remove_semester(Semesters, sem)
+		}
+	}
+
+	return nil
+}
+
+func remove_semester(semesters []*Semester, toRemove *Semester) []*Semester {
+	for i, semester := range semesters {
+		if semester == toRemove {
+			// Remove the element by creating a new slice without it
+			return append(semesters[:i], semesters[i+1:]...)
+		}
+	}
+	return semesters // Return the original slice if the element is not found
 }

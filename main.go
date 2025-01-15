@@ -55,7 +55,8 @@ func main() {
 	err = get_currents()
 
 	if err != nil {
-		show_error(fmt.Sprintf("Error locating currents: %s", err.Error()))
+		show_error(fmt.Sprintf("Error locating currents: %s.\nPlease set:", err.Error()))
+		set_currents()
 	}
 
 	fmt.Println()
@@ -68,30 +69,36 @@ func main() {
 func handle_input() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		case "new":
+		case "n", "new":
 			if len(os.Args) > 2 {
 				switch os.Args[2] {
-				case "sem":
+				case "s", "sem", "semester":
 					create_semester_with_form()
-				case "course":
+				case "co", "cou", "course":
 					create_course_with_form()
-				case "chap":
+				case "ch", "chap", "chapter":
 					create_chapter_with_form()
-				case "lec":
+				case "l", "lec", "lecture":
 					create_lecture_with_form()
 				}
+			} else {
+				choose_create_form()
 			}
-		case "cur":
+		case "cur", "current":
 			set_currents()
-		case "lec":
+		case "l", "lec", "lecture":
 			if len(os.Args) > 2 {
 				if os.Args[2] == "choose" {
 					open_lecture_with_form()
 				}
 			} else {
-				open_lecture(CURRENT_LECTURE)
+				if CURRENT_LECTURE != nil {
+					open_lecture(CURRENT_LECTURE)
+				} else {
+					show_warning("The current lecture is not set.")
+				}
 			}
-		case "tree":
+		case "t", "tree":
 			var semesters_list []string
 
 			for _, s := range Semesters {
@@ -112,6 +119,35 @@ func handle_input() {
 			}
 
 			fmt.Println(tree_style.Render(master_tree.String()))
+		case "rm", "remove":
+			if len(os.Args) > 2 {
+				switch os.Args[2] {
+				case "s", "sem", "semester":
+					err := remove_semester_with_form()
+
+					if err != nil {
+						show_error(err.Error())
+					}
+				case "co", "cou", "course":
+					err := remove_course_with_form()
+
+					if err != nil {
+						show_error(err.Error())
+					}
+				case "ch", "chap", "chapter":
+					err := remove_chapter_with_form()
+
+					if err != nil {
+						show_error(err.Error())
+					}
+				case "l", "lec", "lecture":
+					err := remove_lecture_with_form()
+
+					if err != nil {
+						show_error(err.Error())
+					}
+				}
+			}
 		}
 	}
 }

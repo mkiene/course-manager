@@ -118,7 +118,6 @@ func create_lecture(title string, chapter *Chapter) (*Lecture, error) {
 
 	populate_latex_fields(filepath.Join(chapter.Path, title+".tex"), placeholders)
 
-	add_lecture_to_composite(filepath.Join(chapter.Path, "composite.tex"), filepath.Join(chapter.Path, title+".tex"))
 
 	new_lecture := &Lecture{
 		Parent: chapter,
@@ -130,10 +129,12 @@ func create_lecture(title string, chapter *Chapter) (*Lecture, error) {
 
 	set_current_lecture(new_lecture)
 
+	add_lecture_to_composite(new_lecture, filepath.Join(chapter.Path, "composite.tex"), filepath.Join(chapter.Path, title+".tex"))
+
 	return new_lecture, nil
 }
 
-func add_lecture_to_composite(composite_path, lecture_path string) error {
+func add_lecture_to_composite(lec *Lecture, composite_path, lecture_path string) error {
 	// Read the LaTeX file
 	data, err := os.ReadFile(composite_path)
 	if err != nil {
@@ -149,7 +150,7 @@ func add_lecture_to_composite(composite_path, lecture_path string) error {
 	}
 
 	// Build the `\input{}` line
-	new_lecture := fmt.Sprintf("\\input{%s}", lecture_path)
+	new_lecture := fmt.Sprintf("\\input{%s} %% %s", lecture_path, lec.Title)
 
 	// Check if the lecture already exists
 	if strings.Contains(content, new_lecture) {
@@ -192,12 +193,60 @@ func add_lecture_to_composite(composite_path, lecture_path string) error {
 	return nil
 }
 
+func remove_lecture_from_composite(lec_title, composite_path string) error {
+	// Read the LaTeX file
+	data, err := os.ReadFile(composite_path)
+	if err != nil {
+		return fmt.Errorf("error reading chapter composite: %v", err)
+	}
+	content := string(data)
+
+	// Split content into lines
+	lines := strings.Split(content, "\n")
+
+	// Track if the chapter was removed
+	removed := false
+
+	// Loop through lines to find and remove the chapter
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		// Check if the line is an `\input{}` line and contains the chapter title
+		if strings.HasPrefix(trimmed, `\input{`) && strings.Contains(trimmed, fmt.Sprintf("%% %s", lec_title)) {
+			// Remove the line
+			lines = append(lines[:i], lines[i+1:]...)
+			removed = true
+			break
+		}
+	}
+
+	// If no chapter was removed, return an error
+	if !removed {
+		return fmt.Errorf("chapter '%s' not found in the mainfile", lec_title)
+	}
+
+	// Join the lines back into a single string
+	updatedContent := strings.Join(lines, "\n")
+
+	// Write the updated content back to the file
+	err = os.WriteFile(composite_path, []byte(updatedContent), 0755)
+	if err != nil {
+		return fmt.Errorf("error writing updated mainfile: %v", err)
+	}
+
+	return nil
+}
+
 type Selection struct {
 	Semester string
 	Course   string
 }
 
 func create_lecture_with_form() error {
+
+	if CURRENT_CHAPTER == nil {
+		show_warning("No chapters exist. Try creating one!")
+		return fmt.Errorf("Current chapter doesn't exist.")
+	}
 
 	var title string
 	var confirmed bool
@@ -236,15 +285,18 @@ func create_lecture_with_form() error {
 
 						return tree_style.Render(t.String())
 					}, &title,
-				),
+				).Height(len(CURRENT_CHAPTER.Children)+5),
 
 			huh.NewConfirm().
 				TitleFunc(
 					func() string {
+						if title == "" {
+							return fmt.Sprint("Create 'Untitled'?")
+						}
 						return fmt.Sprintf("Create '%s'?", title)
 					}, &title).
 				Value(&confirmed),
-		).WithHeight(30),
+		).Title("Creating a new Lecture"),
 	).WithTheme(huh.ThemeBase())
 
 	form.Run()
@@ -266,8 +318,12 @@ func create_lecture_with_form() error {
 
 func open_lecture_with_form() error {
 
-	var chosen_lecture string
+	if CURRENT_CHAPTER == nil {
+		show_warning("No chapters exist. Try creating one!")
+		return fmt.Errorf("Current chapter doesn't exist.")
+	}
 
+	var chosen_lecture string
 	var lecture_names []string
 
 	for _, l := range CURRENT_CHAPTER.Children {
@@ -335,4 +391,84 @@ func open_lecture(lec *Lecture) error {
 	}
 
 	return nil
+}
+
+func remove_lecture_with_form() error {
+
+	var choices []string
+	confirmed := false
+	double_confirmed := false
+
+	var options []string
+
+	for _, s := range CURRENT_CHAPTER.Children {
+		options = append(options, s.Title)
+	}
+
+	form := huh.NewForm(
+
+		huh.NewGroup(
+
+			huh.NewMultiSelect[string]().
+				Title("Choose Lecture(s) to delete").
+				Options(huh.NewOptions(options...)...).
+				Value(&choices).
+				Validate(func(s []string) error {
+					if len(choices) < 1 {
+						return fmt.Errorf("You must choose lecture(s) to delete!")
+					}
+					return nil
+				}),
+
+			huh.NewConfirm().
+				Title("Make a selection").
+				TitleFunc(
+					func() string {
+						return fmt.Sprintf("Irreversibly delete '%s'?", choices)
+					}, &choices).
+				Value(&confirmed),
+
+			huh.NewConfirm().
+				Title("Make a selection").
+				TitleFunc(
+					func() string {
+						return fmt.Sprintf("Are you sure you want to irreversibly delete '%s'?", choices)
+					}, &choices).
+				Value(&double_confirmed),
+		),
+	)
+
+	err := form.Run()
+
+	if err != nil {
+		return err
+	}
+
+	if confirmed && double_confirmed {
+
+		for _, choice := range choices {
+			lec, err := find_lecture(choice, CURRENT_CHAPTER)
+
+			if err != nil || lec == nil {
+				return fmt.Errorf("Could not find lecture '%s'.", choice)
+			}
+
+			os.RemoveAll(lec.Path) // remove from filestructure
+
+			CURRENT_CHAPTER.Children = remove_lecture(CURRENT_CHAPTER.Children, lec)
+
+			remove_lecture_from_composite(lec.Title, filepath.Join(CURRENT_CHAPTER.Path, CHAPTER_COMPOSITE_PATH))
+		}
+	}
+
+	return nil
+}
+
+func remove_lecture(lectures []*Lecture, toRemove *Lecture) []*Lecture {
+	for i, lec := range lectures {
+		if lec == toRemove {
+			return append(lectures[:i], lectures[i+1:]...)
+		}
+	}
+	return lectures	
 }
