@@ -9,12 +9,26 @@ import (
 )
 
 // Global Variables
+
 var ROOT_DIR string
 var CONFIG_DIR = "/Users/max/.config/cman/config.json"
 var CURRENT_SEMESTER *Semester
 var CURRENT_COURSE *Course
 var CURRENT_CHAPTER *Chapter
 var CURRENT_LECTURE *Lecture
+
+var SEMESTER_TEMPLATE_PATH = "data/templates/structure/semester.json"
+var SEMESTERS_DIR = "data/semesters"
+
+var COURSE_TEMPLATE_PATH = "data/templates/structure/course.json"
+var COURSES_PATH = "courses"
+var LECTURES_MASTER_PATH = "lectures/lec-master.tex"
+
+var CHAPTER_TEMPLATE_PATH = "data/templates/structure/chapter.json"
+var CHAPTERS_PATH = "lectures/chapters"
+var CHAPTER_COMPOSITE_PATH = "composite.tex"
+
+var LECTURE_TEMPLATE_PATH = "data/templates/files/lecture/lecture.tex"
 
 // Lipgloss Styles
 var new_style = lg.NewStyle().Bold(true).Foreground(lg.Color("#F4F3EE"))
@@ -44,25 +58,40 @@ func main() {
 		show_error(fmt.Sprintf("Error locating currents: %s", err.Error()))
 	}
 
+	fmt.Println()
+
 	handle_input()
+
+	fmt.Println()
 }
 
 func handle_input() {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
-		case "--set-current":
+		case "new":
+			if len(os.Args) > 2 {
+				switch os.Args[2] {
+				case "sem":
+					create_semester_with_form()
+				case "course":
+					create_course_with_form()
+				case "chap":
+					create_chapter_with_form()
+				case "lec":
+					create_lecture_with_form()
+				}
+			}
+		case "cur":
 			set_currents()
-		case "--create-semester":
-			create_semester_with_form()
-		case "--create-course":
-			create_course_with_form()
-		case "--create-lecture":
-			create_lecture_with_form()
-		case "--create-chapter":
-			create_chapter_with_form()
-		case "--open-lecture":
-			open_lecture_with_form()
-		case "--tree":
+		case "lec":
+			if len(os.Args) > 2 {
+				if os.Args[2] == "choose" {
+					open_lecture_with_form()
+				}
+			} else {
+				open_lecture(CURRENT_LECTURE)
+			}
+		case "tree":
 			var semesters_list []string
 
 			for _, s := range Semesters {

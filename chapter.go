@@ -20,7 +20,7 @@ type Chapter struct {
 }
 
 func get_chapters(c *Course) error {
-	files, err := os.ReadDir(filepath.Join(c.Path, "lectures", "chapters"))
+	files, err := os.ReadDir(filepath.Join(c.Path, CHAPTERS_PATH))
 
 	if err != nil {
 		return fmt.Errorf("Error retrieving chapters: %w", err)
@@ -47,7 +47,7 @@ func get_chapters(c *Course) error {
 
 		var new_chapter Chapter
 		new_chapter.Title = f.Name()
-		new_chapter.Path = filepath.Join(c.Path, "lectures/chapters", f.Name())
+		new_chapter.Path = filepath.Join(c.Path, CHAPTERS_PATH, f.Name())
 		c.Children = append(c.Children, &new_chapter)
 	}
 
@@ -97,7 +97,7 @@ func create_chapter(title string, course *Course) (*Chapter, error) {
 		return found_chapter, nil
 	}
 
-	data, err := os.ReadFile(filepath.Join(ROOT_DIR, "data/templates/structure/chapter.json"))
+	data, err := os.ReadFile(filepath.Join(ROOT_DIR, CHAPTER_TEMPLATE_PATH))
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read JSON file: %w", err)
@@ -109,11 +109,11 @@ func create_chapter(title string, course *Course) (*Chapter, error) {
 		return nil, fmt.Errorf("Error parsing JSON: %w", err)
 	}
 
-	os.Mkdir(filepath.Join(course.Path, "lectures", "chapters", title), 0755)
+	os.Mkdir(filepath.Join(course.Path, CHAPTERS_PATH, title), 0755)
 
 	if root, exists := parsed_data["root"]; exists {
 		if root_map, ok := root.(map[string]interface{}); ok {
-			if err := create_structure(filepath.Join(course.Path, "lectures", "chapters", title), root_map); err != nil {
+			if err := create_structure(filepath.Join(course.Path, CHAPTERS_PATH, title), root_map); err != nil {
 				return nil, fmt.Errorf("Error creating directories: %w", err)
 			}
 		}
@@ -125,18 +125,21 @@ func create_chapter(title string, course *Course) (*Chapter, error) {
 		"%%chapter%%": title,
 	}
 
-	populate_latex_fields(filepath.Join(course.Path, "lectures", "chapters", title, "composite.tex"), placeholders)
+	populate_latex_fields(filepath.Join(course.Path, CHAPTERS_PATH, title, CHAPTER_COMPOSITE_PATH), placeholders)
 
-	add_chapter_to_latex_mainfile(filepath.Join(course.Path, "lectures", "lec-master.tex"), filepath.Join(course.Path, "lectures", "chapters", title, "composite.tex"))
+	add_chapter_to_latex_mainfile(filepath.Join(course.Path, LECTURES_MASTER_PATH), filepath.Join(course.Path, CHAPTERS_PATH, title, CHAPTER_COMPOSITE_PATH))
 
-	var new_chapter Chapter
-	new_chapter.Title = title
-	new_chapter.Path = filepath.Join(course.Path, "lectures", "chapters", title)
-	new_chapter.Parent = course
+	new_chapter := &Chapter {
+		Title: title,
+		Path: filepath.Join(course.Path, CHAPTERS_PATH, title),
+		Parent: course,
+	}
 
-	course.Children = append(course.Children, &new_chapter)
+	course.Children = append(course.Children, new_chapter)
 
-	return &new_chapter, nil
+	set_current_chapter(new_chapter)
+
+	return new_chapter, nil
 }
 
 func add_chapter_to_latex_mainfile(main_path, chapter_path string) error {

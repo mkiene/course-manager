@@ -1,4 +1,3 @@
-
 package main
 
 import (
@@ -106,26 +105,26 @@ func build_tree(node interface{}) *tree.Tree {
 	var label string
 	switch n := node.(type) {
 	case *Semester:
-		if CURRENT_SEMESTER.Title == n.Title {
-			label = bold_style.Render("*Semester: " + n.Title)
+		if CURRENT_SEMESTER != nil && CURRENT_SEMESTER.Title == n.Title {
+			label = "Semester (current): " + n.Title
 		} else {
 			label = "Semester: " + n.Title
 		}
 	case *Course:
-		if CURRENT_COURSE.Title == n.Title {
-			label = bold_style.Render("*Course: " + n.Title)
+		if CURRENT_COURSE != nil && CURRENT_COURSE.Title == n.Title {
+			label = "Course (current): " + n.Title
 		} else {
 			label = "Course: " + n.Title
 		}
 	case *Chapter:
-		if CURRENT_CHAPTER.Title == n.Title {
-			label = bold_style.Render("*Chapter: " + n.Title)
+		if CURRENT_CHAPTER != nil && CURRENT_CHAPTER.Title == n.Title {
+			label = "Chapter (current): " + n.Title
 		} else {
 			label = "Chapter: " + n.Title
 		}
 	case *Lecture:
-		if CURRENT_LECTURE.Title == n.Title {
-			label = bold_style.Render("*Lecture: " + n.Title)
+		if CURRENT_LECTURE != nil && CURRENT_LECTURE.Title == n.Title {
+			label = "Lecture (current): " + n.Title
 		} else {
 			label = "Lecture: " + n.Title
 		}
@@ -166,15 +165,9 @@ func build_tree(node interface{}) *tree.Tree {
 }
 
 func update_tree() {
-	root, err := get_json_value("/Users/max/.config/cman/config.json", "path")
-
-	if err != nil {
-		show_error(fmt.Sprintf("Error fetching JSON file: %v", err))
-		return
-	}
 
 	// First, find all semesters under the specified directory in the config file
-	semesters_dir := filepath.Join(root, "data", "semesters")
+	semesters_dir := filepath.Join(ROOT_DIR, SEMESTERS_DIR)
 
 	get_semesters(semesters_dir)
 
@@ -243,10 +236,14 @@ func populate_latex_fields(path string, placeholders map[string]string) error {
 
 func get_currents() error {
 
-	current_semester_title, err := get_json_value("/Users/max/.config/cman/config.json", "current-semester")
+	current_semester_title, err := get_json_value(CONFIG_DIR, "current-semester")
 
 	if err != nil {
 		return err
+	}
+
+	if current_semester_title == "" {
+		return nil
 	}
 
 	CURRENT_SEMESTER, err = find_semester(current_semester_title)
@@ -255,10 +252,14 @@ func get_currents() error {
 		return err
 	}
 
-	current_course_title, err := get_json_value("/Users/max/.config/cman/config.json", "current-course")
+	current_course_title, err := get_json_value(CONFIG_DIR, "current-course")
 
 	if err != nil {
 		return err
+	}
+
+	if current_course_title == "" {
+		return nil
 	}
 
 	CURRENT_COURSE, err = find_course(current_course_title, CURRENT_SEMESTER)
@@ -267,10 +268,14 @@ func get_currents() error {
 		return err
 	}
 
-	current_chapter_title, err := get_json_value("/Users/max/.config/cman/config.json", "current-chapter")
+	current_chapter_title, err := get_json_value(CONFIG_DIR, "current-chapter")
 
 	if err != nil {
 		return err
+	}
+
+	if current_chapter_title == "" {
+		return nil
 	}
 
 	CURRENT_CHAPTER, err = find_chapter(current_chapter_title, CURRENT_COURSE)
@@ -279,10 +284,14 @@ func get_currents() error {
 		return err
 	}
 
-	current_lecture_title, err := get_json_value("/Users/max/.config/cman/config.json", "current-lecture")
+	current_lecture_title, err := get_json_value(CONFIG_DIR, "current-lecture")
 
 	if err != nil {
 		return err
+	}
+
+	if current_lecture_title == "" {
+		return nil
 	}
 
 	CURRENT_LECTURE, err = find_lecture(current_lecture_title, CURRENT_CHAPTER)
@@ -305,19 +314,51 @@ func set_currents() {
 	}
 
 	semester_form := huh.NewForm(
+
 		huh.NewGroup(
+
 			huh.NewSelect[string]().
 				Title("Select a Semester").
 				Options(huh.NewOptions(semester_titles...)...).
-				Value(&chosen_semester),
+				Value(&chosen_semester).Height(1),
+
+			huh.NewNote().
+				Title("Filetree").
+				DescriptionFunc(
+					func() string {
+
+						t := tree.New().Root("semesters")
+
+						for _, s := range Semesters {
+							if s.Title == chosen_semester {
+								t.Child(bold_style.Render(build_tree(s).String()))
+							} else {
+								t.Child(build_tree(s))
+							}
+						}
+
+						return tree_style.Render(t.String())
+					}, &chosen_semester).Height(40),
 		),
 	).WithTheme(huh.ThemeBase())
 
-	semester_form.Run()
+	err := semester_form.Run()
 
-	modify_json_value(CONFIG_DIR, "current-semester", chosen_semester)
+	if err != nil {
+		return
+	}
 
-	get_currents()
+	semester_obj, err := find_semester(chosen_semester)
+
+	if err != nil {
+		return
+	}
+
+	set_current_semester(semester_obj)
+
+	if len(semester_obj.Children) < 1 {
+		return
+	}
 
 	/////
 
@@ -334,15 +375,45 @@ func set_currents() {
 			huh.NewSelect[string]().
 				Title("Select a Course").
 				Options(huh.NewOptions(course_titles...)...).
-				Value(&chosen_course),
-		),
+				Value(&chosen_course).Height(1),
+
+			huh.NewNote().
+				Title("Filetree").
+				DescriptionFunc(
+					func() string {
+
+						t := tree.New().Root(CURRENT_SEMESTER.Title)
+
+						for _, s := range CURRENT_SEMESTER.Children {
+							if s.Title == chosen_course {
+								t.Child(bold_style.Render(build_tree(s).String()))
+							} else {
+								t.Child(build_tree(s))
+							}
+						}
+
+						return tree_style.Render(t.String())
+					}, &chosen_course).Height(40),
+		).WithHeight(10),
 	).WithTheme(huh.ThemeBase())
 
-	course_form.Run()
+	err = course_form.Run()
 
-	modify_json_value(CONFIG_DIR, "current-course", chosen_course)
+	if err != nil {
+		return
+	}
 
-	get_currents()
+	course_obj, err := find_course(chosen_course, CURRENT_SEMESTER)
+
+	if err != nil {
+		return
+	}
+
+	set_current_course(course_obj)
+
+	if len(course_obj.Children) < 1 {
+		return
+	}
 
 	/////
 
@@ -359,15 +430,45 @@ func set_currents() {
 			huh.NewSelect[string]().
 				Title("Select a Chapter").
 				Options(huh.NewOptions(chapter_titles...)...).
-				Value(&chosen_chapter),
-		),
+				Value(&chosen_chapter).Height(1),
+
+			huh.NewNote().
+				Title("Filetree").
+				DescriptionFunc(
+					func() string {
+
+						t := tree.New().Root(CURRENT_COURSE.Title)
+
+						for _, s := range CURRENT_COURSE.Children {
+							if s.Title == chosen_chapter {
+								t.Child(bold_style.Render(build_tree(s).String()))
+							} else {
+								t.Child(build_tree(s))
+							}
+						}
+
+						return tree_style.Render(t.String())
+					}, &chosen_chapter).Height(40),
+		).WithHeight(10),
 	).WithTheme(huh.ThemeBase())
 
-	chapter_form.Run()
+	err = chapter_form.Run()
 
-	modify_json_value(CONFIG_DIR, "current-chapter", chosen_chapter)
+	if err != nil {
+		return
+	}
 
-	get_currents()
+	chapter_obj, err := find_chapter(chosen_chapter, CURRENT_COURSE)
+
+	if err != nil {
+		return
+	}
+
+	set_current_chapter(chapter_obj)
+
+	if len(chapter_obj.Children) < 1 {
+		return
+	}
 
 	/////
 
@@ -384,11 +485,96 @@ func set_currents() {
 			huh.NewSelect[string]().
 				Title("Select a Lecture").
 				Options(huh.NewOptions(lecture_titles...)...).
-				Value(&chosen_lecture),
-		),
+				Value(&chosen_lecture).Height(1),
+
+			huh.NewNote().
+				Title("Filetree").
+				DescriptionFunc(
+					func() string {
+
+						t := tree.New().Root(CURRENT_CHAPTER.Title)
+
+						for _, s := range CURRENT_CHAPTER.Children {
+							if s.Title == chosen_lecture {
+								t.Child(bold_style.Render(build_tree(s).String()))
+							} else {
+								t.Child(build_tree(s))
+							}
+						}
+
+						return tree_style.Render(t.String())
+					}, &chosen_lecture).Height(40),
+		).WithHeight(10),
 	).WithTheme(huh.ThemeBase())
 
-	lecture_form.Run()
+	err = lecture_form.Run()
 
-	modify_json_value(CONFIG_DIR, "current-lecture", chosen_lecture)
+	if err != nil {
+		return
+	}
+
+	lecture_obj, err := find_lecture(chosen_lecture, CURRENT_CHAPTER)
+
+	if err != nil {
+		return
+	}
+
+	set_current_lecture(lecture_obj)
+}
+
+func set_current_semester(semester *Semester) error {
+	err := modify_json_value(CONFIG_DIR, "current-semester", semester.Title)
+
+	if err != nil {
+		return err
+	}
+
+	modify_json_value(CONFIG_DIR, "current-course", "")
+	modify_json_value(CONFIG_DIR, "current-chapter", "")
+	modify_json_value(CONFIG_DIR, "current-lecture", "")
+
+	get_currents()
+
+	return nil
+}
+
+func set_current_course(course *Course) error {
+	err := modify_json_value(CONFIG_DIR, "current-course", course.Title)
+
+	if err != nil {
+		return err
+	}
+
+	modify_json_value(CONFIG_DIR, "current-chapter", "")
+	modify_json_value(CONFIG_DIR, "current-lecture", "")
+
+	get_currents()
+
+	return nil
+}
+
+func set_current_chapter(chapter *Chapter) error {
+	err := modify_json_value(CONFIG_DIR, "current-chapter", chapter.Title)
+
+	if err != nil {
+		return err
+	}
+
+	modify_json_value(CONFIG_DIR, "current-lecture", "")
+
+	get_currents()
+
+	return nil
+}
+
+func set_current_lecture(lecture *Lecture) error {
+	err := modify_json_value(CONFIG_DIR, "current-lecture", lecture.Title)
+
+	if err != nil {
+		return err
+	}
+
+	get_currents()
+
+	return nil
 }

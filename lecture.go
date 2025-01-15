@@ -102,7 +102,7 @@ func create_lecture(title string, chapter *Chapter) (*Lecture, error) {
 		return found_lecture, nil
 	}
 
-	template, err := os.ReadFile(filepath.Join(ROOT_DIR, "data", "templates", "files", "lecture", "lecture.tex"))
+	template, err := os.ReadFile(filepath.Join(ROOT_DIR, LECTURE_TEMPLATE_PATH))
 
 	if err != nil {
 		return nil, fmt.Errorf("Error reading template file: %w", err)
@@ -120,14 +120,17 @@ func create_lecture(title string, chapter *Chapter) (*Lecture, error) {
 
 	add_lecture_to_composite(filepath.Join(chapter.Path, "composite.tex"), filepath.Join(chapter.Path, title+".tex"))
 
-	var new_lecture Lecture
-	new_lecture.Parent = chapter
-	new_lecture.Path = filepath.Join(chapter.Path, title)
-	new_lecture.Title = title
+	new_lecture := &Lecture{
+		Parent: chapter,
+		Path:   filepath.Join(chapter.Path, title),
+		Title:  title,
+	}
 
-	chapter.Children = append(chapter.Children, &new_lecture)
+	chapter.Children = append(chapter.Children, new_lecture)
 
-	return &new_lecture, nil
+	set_current_lecture(new_lecture)
+
+	return new_lecture, nil
 }
 
 func add_lecture_to_composite(composite_path, lecture_path string) error {

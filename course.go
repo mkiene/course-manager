@@ -19,7 +19,7 @@ type Course struct {
 }
 
 func get_courses(s *Semester) error {
-	files, err := os.ReadDir(filepath.Join(s.Path, "courses"))
+	files, err := os.ReadDir(filepath.Join(s.Path, COURSES_PATH))
 
 	if err != nil {
 		return fmt.Errorf("Error retrieving courses: %w", err)
@@ -33,7 +33,7 @@ func get_courses(s *Semester) error {
 
 		new_course := &Course{
 			Title: f.Name(),
-			Path:  filepath.Join(s.Path, "courses", f.Name()),
+			Path:  filepath.Join(s.Path, COURSES_PATH, f.Name()),
 		}
 
 		s.Children = append(s.Children, new_course)
@@ -59,7 +59,7 @@ func create_course(title string, semester *Semester) (*Course, error) {
 		return c, nil
 	}
 
-	data, err := os.ReadFile(filepath.Join(ROOT_DIR, "data/templates/structure/course.json"))
+	data, err := os.ReadFile(filepath.Join(ROOT_DIR, COURSE_TEMPLATE_PATH))
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read JSON file: %w", err)
@@ -71,13 +71,13 @@ func create_course(title string, semester *Semester) (*Course, error) {
 		return nil, fmt.Errorf("Error parsing JSON: %w", err)
 	}
 
-	if err := os.Mkdir(filepath.Join(semester.Path, "courses", title), 0755); err != nil {
+	if err := os.Mkdir(filepath.Join(semester.Path, COURSES_PATH, title), 0755); err != nil {
 		return nil, err
 	}
 
 	if root, exists := parsed_data["root"]; exists {
 		if root_map, ok := root.(map[string]interface{}); ok {
-			if err := create_structure(filepath.Join(semester.Path, "courses", title), root_map); err != nil {
+			if err := create_structure(filepath.Join(semester.Path, COURSES_PATH, title), root_map); err != nil {
 				return nil, fmt.Errorf("Error creating directories: %w", err)
 			}
 		}
@@ -88,15 +88,17 @@ func create_course(title string, semester *Semester) (*Course, error) {
 		"%%semester%%": semester.Title,
 	}
 
-	populate_latex_fields(filepath.Join(semester.Path, "courses", title, "lectures", "lec-master.tex"), placeholders)
+	populate_latex_fields(filepath.Join(semester.Path, COURSES_PATH, title, LECTURES_MASTER_PATH), placeholders)
 
 	new_course := &Course{
 		Title:  title,
-		Path:   filepath.Join(semester.Path, "courses", title),
+		Path:   filepath.Join(semester.Path, COURSES_PATH, title),
 		Parent: semester,
 	}
 
 	semester.Children = append(semester.Children, new_course)
+
+	set_current_course(new_course)
 
 	return new_course, nil
 }

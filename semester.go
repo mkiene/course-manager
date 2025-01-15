@@ -63,7 +63,7 @@ func create_semester(title string) (*Semester, error) {
 		return found_semester, nil
 	}
 
-	data, err := os.ReadFile(filepath.Join(ROOT_DIR, "data/templates/structure/semester.json"))
+	data, err := os.ReadFile(filepath.Join(ROOT_DIR, SEMESTER_TEMPLATE_PATH))
 
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read JSON file: %w", err)
@@ -75,11 +75,11 @@ func create_semester(title string) (*Semester, error) {
 		return nil, fmt.Errorf("Error parsing JSON: %w", err)
 	}
 
-	os.Mkdir(filepath.Join(ROOT_DIR, "data", "semesters", title), 0755)
+	os.Mkdir(filepath.Join(ROOT_DIR, SEMESTERS_DIR, title), 0755)
 
 	if root, exists := parsed_data["root"]; exists {
 		if root_map, ok := root.(map[string]interface{}); ok {
-			if err := create_structure(filepath.Join(ROOT_DIR, "data", "semesters", title), root_map); err != nil {
+			if err := create_structure(filepath.Join(ROOT_DIR, SEMESTERS_DIR, title), root_map); err != nil {
 				return nil, fmt.Errorf("Error creating directories: %w", err)
 			}
 		}
@@ -87,10 +87,12 @@ func create_semester(title string) (*Semester, error) {
 
 	new_semester := &Semester{
 		Title: title,
-		Path:  filepath.Join(ROOT_DIR, "data", "semesters", title),
+		Path:  filepath.Join(ROOT_DIR, SEMESTERS_DIR, title),
 	}
 
 	Semesters = append(Semesters, new_semester)
+
+	set_current_semester(new_semester)
 
 	return new_semester, nil
 }
