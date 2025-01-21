@@ -1,5 +1,4 @@
 {
-	"root": {
-		"courses": {}
-	}
+  "info.json": "/Users/max/course-manager/data/templates/files/info.json",
+  "course": {}
 }

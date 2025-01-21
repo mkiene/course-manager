@@ -1,5 +1,8 @@
 {
-	"root": {
-		"composite.tex": "/Users/max/course-manager/data/templates/files/chapter/composite.tex"
-	}
+  "info.json": "/Users/max/course-manager/data/templates/files/info.json",
+  "lecture": {},
+  "figures": {},
+  "build": {},
+  "bibliography.bib": "/Users/max/course-manager/data/templates/files/chapter/chapter-bibliography.bib",
+  "chapter-master.tex": "/Users/max/course-manager/data/templates/files/chapter/chapter-master.tex"
 }
