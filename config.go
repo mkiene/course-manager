@@ -1,35 +1,31 @@
 package main
 
 const (
-	CFG_CONFIG_DIR   = "/Users/max/.config/course-manager/config.json"
-	CFG_SEMESTER_DIR = "data/semester"
-
-	CFG_TEMPLATE_DIR = "data/templates"
-
+	CFG_CONFIG_DIR          = "/Users/max/.config/course-manager/config.json"
+	CFG_SEMESTER_DIR        = "data/semester"
+	CFG_TEMPLATE_DIR        = "data/templates"
 	CFG_CURRENT_NODE_PREFIX = "current-"
-
-	CFG_ROOT_FIELD = "root-dir"
-
-	CFG_INFO_FILENAME = "info"
-
-	CFG_REPLACE_MARKER = "%%"
-
-	CFG_NOTE_FILETYPE = ".tex"
-
-	CFG_EDITOR = "vim"
+	CFG_ROOT_FIELD          = "root-dir"
+	CFG_INFO_FILENAME       = "info"
+	CFG_REPLACE_MARKER      = "%%"
+	CFG_NOTE_FILETYPE       = ".tex"
+	CFG_EDITOR              = "vim"
 )
 
 var CFG_NOTE_ARGUMENTS = []string{
-		"-c",
-		":VimtexCompile",
-	}
+	"-c",
+	":VimtexCompile",
+}
 
 var CFG_ALIASES = [][]string{
 	{"new", "n"},
+	{"current", "cur"},
+	{"tree", "t"},
 	{"remove", "rem", "rm"},
-	{"semester", "sem", "s"},
+	{"semester", "sem"},
 	{"course", "cou", "co"},
 	{"chapter", "chap", "ch"},
+	{"section", "sec", "s"},
 	{"lecture", "lec", "l"},
 }
 
@@ -37,14 +33,16 @@ var CFG_GROUP_DEPTH = map[string]int{
 	"semester": 0,
 	"course":   1,
 	"chapter":  2,
-	"lecture":  3,
+	"section":  3,
+	"lecture":  4,
 }
 
 var CFG_DEPTH_GROUP = map[int]string{
 	0: "semester",
 	1: "course",
 	2: "chapter",
-	3: "lecture",
+	3: "section",
+	4: "lecture",
 }
 
 func get_config_value(field string) (string, error) {

@@ -61,18 +61,19 @@
 	\newcommand\correct[2]{\ensuremath{\:}{\color{red}{#1}}\ensuremath{\to }{\color{correct}{#2}}\ensuremath{\:}}
 	\newcommand\green[1]{{\color{correct}{#1}}}
 
-
-
 	% horizontal rule
 	\newcommand\hr{
 		\noindent\rule[0.5ex]{\linewidth}{0.5pt}
 	}
 
+	% derivatives
+
+	\newcommand{\dx}{\,\mathrm{d}x}
+	\newcommand{\dy}{\,\mathrm{d}y}
+	\newcommand{\dz}{\,\mathrm{d}z}
 
 	% hide parts
 	\newcommand\hide[1]{}
-
-
 
 	% si unitx
 	\usepackage{siunitx}
@@ -98,6 +99,7 @@
 	}
 
 	\newcounter{examplecounter}[section]
+	\newcounter{problemcounter}[section]
 
 	% Syntax: \colorboxed[<color model>]{<color specification>}{<math formula>}
 	\newcommand*{\colorboxed}{}
@@ -139,35 +141,145 @@
 	\mdfsetup{skipabove=1em,skipbelow=0em}
 
 	% themes
-	\newcommand\examplecolor{DarkOrchid}
-	\newcommand\solutioncolor{DarkOrchid}
-	\newcommand\definitioncolor{ForestGreen}
+	\newcommand\definitioncolor{Aquamarine}
+	\newcommand\examplecolor{Melon}
+	\newcommand\problemcolor{RubineRed}
+	\newcommand\propositioncolor{Plum}
+	\newcommand\theoremcolor{SeaGreen}
+	\newcommand\lemmacolor{Periwinkle}
+	\newcommand\corollarycolor{Dandelion}
+	\newcommand\solutioncolor{Melon}
+	\newcommand\proofcolor{Orchid}
 
 	\theoremstyle{definition}
 
-	\declaretheoremstyle[
+\declaretheoremstyle[
 	headfont=\bfseries\sffamily\color{\definitioncolor!70!black}, bodyfont=\normalfont,
 	mdframed={
-	linewidth=2pt,
-	leftline=false,
-	rightline=false,
-	topline=false,
-	bottomline=false,
-	linecolor=\definitioncolor,
-	backgroundcolor=\definitioncolor!3,
-	splitbottomskip=3em,
-	splittopskip=0em,
-	afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\definitioncolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
-beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\definitioncolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
-}
+			linewidth=1pt,
+			leftline=true, rightline=false, topline=false, bottomline=false,
+			linecolor=\definitioncolor!30, backgroundcolor=\definitioncolor!1,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\definitioncolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\definitioncolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
 ]{thmdefinitionbox}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\examplecolor!70!black}, bodyfont=\normalfont,
+	mdframed={
+			linewidth=1pt,
+			leftline=true, rightline=false, topline=false, bottomline=false,
+			linecolor=\examplecolor!30, backgroundcolor=\examplecolor!3,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\examplecolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\examplecolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
+]{thmexamplebox}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\problemcolor!70!black}, bodyfont=\normalfont,
+	mdframed={
+			linewidth=1pt,
+			leftline=true, rightline=false, topline=false, bottomline=false,
+			linecolor=\problemcolor!30, backgroundcolor=\problemcolor!3,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\problemcolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\problemcolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
+]{thmproblembox}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\propositioncolor!70!black}, bodyfont=\normalfont,
+	mdframed={
+			linewidth=1pt,
+			leftline=true, rightline=false, topline=false, bottomline=false,
+			linecolor=\propositioncolor!30, backgroundcolor=\propositioncolor!3,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\propositioncolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\propositioncolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
+]{thmpropbox}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\proofcolor!70!black}, bodyfont=\normalfont,
+	mdframed={
+			linewidth=1pt,
+			leftline=true, rightline=false, topline=false, bottomline=false,
+			linecolor=\proofcolor!30, backgroundcolor=\proofcolor!1,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\proofcolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\proofcolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
+]{thmproofbox}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\theoremcolor!70!black}, bodyfont=\normalfont,
+	mdframed={
+			linewidth=1pt,
+			leftline=true, rightline=false, topline=false, bottomline=false,
+			linecolor=\theoremcolor!30, backgroundcolor=\theoremcolor!3,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\theoremcolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\theoremcolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
+]{thmtheorembox}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\lemmacolor!70!black}, bodyfont=\normalfont,
+	mdframed={
+			linewidth=1pt,
+			leftline=true, rightline=false, topline=false, bottomline=false,
+			linecolor=\lemmacolor!30, backgroundcolor=\lemmacolor!3,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\lemmacolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\lemmacolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
+]{thmlemmabox}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\corollarycolor!70!black}, bodyfont=\normalfont,
+	mdframed={
+			linewidth=1pt,
+			leftline=true, rightline=false, topline=false, bottomline=false,
+			linecolor=\corollarycolor!30, backgroundcolor=\corollarycolor!3,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\corollarycolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\corollarycolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		}
+]{thmcorolbox}
+
+\usepackage[absolute,overlay]{textpos}
+
+\declaretheoremstyle[
+	headfont=\bfseries\sffamily\color{\solutioncolor!70!black}, bodyfont=\normalfont,
+	numbered=no,
+	mdframed={
+			linewidth=1pt,
+			leftline=true, rightline=false, topline=false, bottomline=false,
+			linecolor=\solutioncolor!30, backgroundcolor=\solutioncolor!1,
+			splitbottomskip=3em,
+			splittopskip=0em,
+			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\solutioncolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
+			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\solutioncolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
+		},
+	qed=\qedsymbol
+]{thmsolutionbox}
 
 \declaretheoremstyle[
 	headfont=\bfseries\sffamily\color{NavyBlue!70!black}, bodyfont=\normalfont,
 	mdframed={
-			linewidth=2pt,
-			leftline=false, rightline=false, topline=false, bottomline=false,
-			linecolor=NavyBlue, backgroundcolor=NavyBlue!3,
+			linewidth=1pt,
+			leftline=true, rightline=false, topline=false, bottomline=false,
+			linecolor=NavyBlue!30, backgroundcolor=NavyBlue!3,
 			splitbottomskip=3em,
 			splittopskip=0em,
 			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
@@ -178,60 +290,15 @@ beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\definitioncolor!
 \declaretheoremstyle[
 	headfont=\bfseries\sffamily\color{NavyBlue!70!black}, bodyfont=\normalfont,
 	mdframed={
-			linewidth=2pt,
-			leftline=false, rightline=false, topline=false, bottomline=false,
-			linecolor=NavyBlue,
+			linewidth=1pt,
+			leftline=false, rightline=false, topline=true, bottomline=true,
+			linecolor=NavyBlue!7,backgroundcolor=NavyBlue!2,
 			splitbottomskip=3em,
 			splittopskip=0em,
 			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
 			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
 		}
 ]{thmblueline}
-
-\declaretheoremstyle[
-	headfont=\bfseries\sffamily\color{\examplecolor!70!black}, bodyfont=\normalfont,
-	mdframed={
-			linewidth=2pt,
-			leftline=false, rightline=false, topline=false, bottomline=false,
-			linecolor=\examplecolor, backgroundcolor=\examplecolor!3,
-			splitbottomskip=3em,
-			splittopskip=0em,
-			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\examplecolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
-			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\examplecolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
-		}
-]{thmexamplebox}
-
-\declaretheoremstyle[
-	headfont=\bfseries\sffamily\color{NavyBlue!70!black}, bodyfont=\normalfont,
-	numbered=no,
-	mdframed={
-			linewidth=2pt,
-			leftline=false, rightline=false, topline=false, bottomline=false,
-			linecolor=NavyBlue, backgroundcolor=NavyBlue!3,
-			splitbottomskip=3em,
-			splittopskip=0em,
-			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
-			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{NavyBlue!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
-		},
-	qed=\qedsymbol
-]{thmproofbox}
-
-\usepackage[absolute,overlay]{textpos}
-
-\declaretheoremstyle[
-	headfont=\bfseries\sffamily\color{\solutioncolor!70!black}, bodyfont=\normalfont,
-	numbered=no,
-	mdframed={
-			linewidth=2pt,
-			leftline=false, rightline=false, topline=false, bottomline=false,
-			linecolor=\solutioncolor, backgroundcolor=\solutioncolor!0,
-			splitbottomskip=3em,
-			splittopskip=0em,
-			afterbreak=\ifmdffirstframe{\begin{minipage}{\linewidth}\vspace{-1.5em}\color{\solutioncolor!70!black}\centering $\bm{\cdots}$\end{minipage}}\fi,
-			beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\solutioncolor!70!black}\centering $\bm{\cdots}$\end{mdframed}\vspace{-0.1em}},
-		},
-	qed=\qedsymbol
-]{thmsolutionbox}
 
 % \declaretheoremstyle[headfont=\bfseries\sffamily, bodyfont=\normalfont, mdframed={ nobreak } ]{thmgreenbox}
 % \declaretheoremstyle[headfont=\bfseries\sffamily, bodyfont=\normalfont, mdframed={ nobreak } ]{thmredbox}
@@ -242,10 +309,11 @@ beforelastframe={\begin{mdframed}[innerbottommargin=2em]\color{\definitioncolor!
 
 \declaretheorem[style=thmdefinitionbox, name=Definition]{definition}
 \declaretheorem[style=thmexamplebox, name=Example, sibling=examplecounter]{eg}
-\declaretheorem[style=thmbluebox, name=Proposition]{prop}
-\declaretheorem[style=thmbluebox, name=Theorem]{theorem}
-\declaretheorem[style=thmbluebox, name=Lemma]{lemma}
-\declaretheorem[style=thmbluebox, numbered=no, name=Corollary]{corollary}
+\declaretheorem[style=thmproblembox, name=Problem, sibling=problemcounter]{prb}
+\declaretheorem[style=thmpropbox, name=Proposition]{prop}
+\declaretheorem[style=thmtheorembox, name=Theorem]{theorem}
+\declaretheorem[style=thmlemmabox, name=Lemma]{lemma}
+\declaretheorem[style=thmcorolbox, numbered=no, name=Corollary]{corollary}
 
 \declaretheorem[style=thmproofbox, name=$\bm{\hookrightarrow}$ Proof]{replacementproof}
 \renewenvironment{proof}[1][\proofname]{\vspace{-10pt}\begin{replacementproof}}{\end{replacementproof}}

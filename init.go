@@ -76,6 +76,10 @@ func build_tree(parent *Node) (*Node, error) {
 			group, _ = read_json_value(info_file, "group")
 		}
 
+		if title == "" {
+			continue
+		}
+
 		node := &Node{}
 
 		node.set_title(title)

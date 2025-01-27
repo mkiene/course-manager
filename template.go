@@ -58,7 +58,7 @@ func populate_note_fields(node *Node) error {
 	placeholders := map[string]interface{}{}
 
 	for _, field := range fields {
-		value := node.get(field)
+		value := node.get_field_value_by_name(field)
 
 		if str, ok := value.(string); ok {
 			tex_field := CFG_REPLACE_MARKER + strings.ToLower(field) + CFG_REPLACE_MARKER
@@ -116,65 +116,91 @@ func populate_note_fields(node *Node) error {
 }
 
 func add_children_to_input_file(node *Node) error {
-
-	parent_file, err := get_composite_file(node.get_path())
+	// Get the "composite" file for the parent node
+	parentFile, err := get_composite_file(node.get_path())
 	if err != nil {
 		return err
 	}
 
+	// Read the entire contents of the parent file
+	parentData, err := os.ReadFile(parentFile)
+	if err != nil {
+		return fmt.Errorf("unable to read parent file %s: %w", parentFile, err)
+	}
+	parentContent := string(parentData)
+
+	// We'll split once, keep it in memory, and rewrite at the end
+	lines := strings.Split(parentContent, "\n")
+
+	// Define the placeholder section where we insert lines
+	placeholder := "% INPUT"
+
 	for _, child := range node.get_children() {
-		child_file, err := get_composite_file(child.get_path())
+		// Get the "composite" file for the child (the .tex file we want to \input)
+		childFile, err := get_composite_file(child.get_path())
 		if err != nil {
 			return err
 		}
 
-		addition := fmt.Sprintf("\\input{%s} %% %s", filepath.Join(child.get_path(), filepath.Base(child_file)), child.get_title())
+		// Build the new line we want to insert, e.g.
+		//   \input{.../Lec1.tex} % Lec1
+		newLine := fmt.Sprintf("\\input{%s} %% %s",
+			filepath.Join(child.get_path(), filepath.Base(childFile)),
+			child.get_title())
 
-		data, err := os.ReadFile(parent_file)
-		if err != nil {
-			return err
-		}
-		content := string(data)
-
-		// Check if the input already exists
-		if strings.Contains(content, addition) {
+		// 1) Check if the exact line is already present
+		//    If it's there, skip adding it again.
+		if strings.Contains(parentContent, newLine) {
 			continue
 		}
 
-		// Split content into lines
-		lines := strings.Split(content, "\n")
-
-		placeholder := "% INPUT"
-
-		// Find the last input in the `% INPUT` section
-		insert_index := -1
+		// 2) If not already there, we place it after existing \input{} lines
+		//    within the `% INPUT` section.
+		insertIndex := -1
 		for i, line := range lines {
 			if strings.TrimSpace(line) == placeholder {
-				insert_index = i
+				insertIndex = i
 				break
 			}
 		}
 
-		if insert_index == -1 {
-			return fmt.Errorf("unable to locate placeholder '%s' in lines", placeholder)
+		if insertIndex == -1 {
+			// If we can't find the placeholder, bail out
+			return fmt.Errorf("unable to locate placeholder '%s' in file %s", placeholder, parentFile)
 		}
 
-		// Append the new input at the end of the `% INPUT` section
-		for i := insert_index + 1; i < len(lines); i++ {
-			if strings.TrimSpace(lines[i]) == "" || !strings.HasPrefix(strings.TrimSpace(lines[i]), `\input{`) {
-				lines = append(lines[:i], append([]string{addition}, lines[i:]...)...)
+		// Insert after the “INPUT” placeholder lines or in the next blank line.
+		// We'll scan forward for the next place to insert.
+		didInsert := false
+		for i := insertIndex + 1; i < len(lines); i++ {
+			trimmed := strings.TrimSpace(lines[i])
+
+			// We assume the “INPUT section” continues while lines have `\input{...}`
+			// or are empty. Once we hit something else, insert right before it.
+			if trimmed == "" || strings.HasPrefix(trimmed, `\input{`) {
+				// Keep going
+				continue
+			} else {
+				// Insert here
+				lines = append(lines[:i], append([]string{newLine}, lines[i:]...)...)
+				didInsert = true
 				break
 			}
 		}
 
-		// Join the lines back into a single string
-		updated_content := strings.Join(lines, "\n")
-
-		// Write the updated content back to the file
-		err = os.WriteFile(parent_file, []byte(updated_content), 0755)
-		if err != nil {
-			return fmt.Errorf("error writing updated mainfile: %v", err)
+		// If we never hit a non-\input line, we can append at the end
+		if !didInsert {
+			lines = append(lines, newLine)
 		}
+
+		// Re-join lines to keep content up-to-date for subsequent children
+		parentContent = strings.Join(lines, "\n")
+	}
+
+	// Finally, write the updated content back to the parent file
+	err = os.WriteFile(parentFile, []byte(parentContent), 0755)
+	if err != nil {
+		return fmt.Errorf("error writing updated composite file %s: %v", parentFile, err)
 	}
 
 	return nil

@@ -9,10 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// --------------------- //
-// Node Type and Methods //
-// --------------------- //
-
 type Node struct {
 	Group    string
 	Title    string
@@ -24,12 +20,12 @@ type Node struct {
 
 var Nodes []*Node
 
-func (n *Node) get(field_name string) interface{} {
+func (n *Node) get_field_value_by_name(field_name string) interface{} {
 	v := reflect.ValueOf(n).Elem()
 
 	field := v.FieldByName(field_name)
 	if !field.IsValid() {
-		panic(fmt.Sprintf("Field '%s' does not exist in Node struct", field_name))
+		panic(fmt.Sprintf("field '%s' does not exist in node struct", field_name))
 	}
 
 	return field.Interface()
@@ -76,28 +72,22 @@ func (n *Node) set_parent(parent *Node) error {
 		return fmt.Errorf("depth mismatch between child and parent")
 	}
 
-	parent.Children = append(parent.Children, n)
+	contained := false
+
+	for _, child := range parent.Children {
+		if child.get_id() == n.get_id() {
+			contained = true
+		}
+	}
+
+	if !contained {
+		parent.Children = append(parent.Children, n)
+	}
+
 	n.Parent = parent
 
 	return nil
 }
-
-// func (n *Node) set_children(children []*Node) error {
-
-// 	for _, child := range children {
-// 		if child.get_depth() != n.get_depth()+1 {
-// 			return fmt.Errorf("illegal child: %v", child.get_title())
-// 		}
-// 	}
-
-// 	n.Children = children
-
-// 	return nil
-// }
-
-// -------------- //
-// Core Functions //
-// -------------- //
 
 func create_node(group, title string) (*Node, error) {
 
@@ -123,7 +113,7 @@ func create_node(group, title string) (*Node, error) {
 	var node_path string
 
 	if CFG_GROUP_DEPTH[group] == len(CFG_GROUP_DEPTH)-1 {
-		node_path = filepath.Join(group_path, title + CFG_NOTE_FILETYPE)
+		node_path = filepath.Join(group_path, title+CFG_NOTE_FILETYPE)
 	} else {
 		node_path = filepath.Join(group_path, title)
 	}
@@ -154,10 +144,6 @@ func create_node(group, title string) (*Node, error) {
 
 	return node, nil
 }
-
-// ---------------- //
-// Helper Functions //
-// ---------------- //
 
 func valid_node_group(group string) bool {
 	_, exists := CFG_GROUP_DEPTH[strings.ToLower(group)]
@@ -220,21 +206,18 @@ func initialize_node(group, title, node_path string) (*Node, error) {
 }
 
 func get_struct_field_names(data interface{}) []string {
-	// Get the type of the input
 	t := reflect.TypeOf(data)
 
-	// Ensure it's a struct
 	if t.Kind() != reflect.Struct {
 		panic("Provided input is not a struct")
 	}
 
-	var fieldNames []string
+	var field_names []string
 
-	// Loop through the struct fields
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		fieldNames = append(fieldNames, field.Name)
+		field_names = append(field_names, field.Name)
 	}
 
-	return fieldNames
+	return field_names
 }

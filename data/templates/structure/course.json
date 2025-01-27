@@ -1,5 +1,6 @@
 {
   "info.json": "/Users/max/course-manager/data/templates/files/info.json",
+  "build": {},
   "chapter": {},
   "preamble.tex": "/Users/max/course-manager/data/templates/files/course/preamble.tex",
   "course-master.tex": "/Users/max/course-manager/data/templates/files/course/course-master.tex",
