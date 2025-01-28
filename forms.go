@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss/tree"
 	"github.com/mkiene/huh"
 )
@@ -150,7 +151,8 @@ func node_creation_form(group string) (*Node, error) {
 				Value(&confirm),
 		),
 	).WithTheme(form_theme).
-		WithLayout(huh.LayoutStack)
+		WithLayout(huh.LayoutStack).
+		WithProgramOptions(tea.WithAltScreen())
 
 	err := form.Run()
 
@@ -256,7 +258,8 @@ func set_currents_form(group string) error {
 				}, &choices),
 		),
 	).WithTheme(form_theme).
-		WithLayout(huh.LayoutStack)
+		WithLayout(huh.LayoutStack).
+		WithProgramOptions(tea.WithAltScreen())
 
 	err := form.Run()
 	if err != nil {
@@ -360,7 +363,7 @@ func node_deletion_form(group string) error {
 					}
 				}
 
-				return fmt.Sprintln(tree.String())
+				return fmt.Sprintln(tree_style.Render(tree.String()))
 
 			}, &choices),
 
@@ -388,7 +391,8 @@ func node_deletion_form(group string) error {
 			return true
 		}),
 	).WithTheme(form_theme).
-		WithLayout(huh.LayoutStack)
+		WithLayout(huh.LayoutStack).
+		WithProgramOptions(tea.WithAltScreen())
 
 	if err := form.Run(); err != nil {
 		return err
