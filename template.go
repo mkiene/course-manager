@@ -206,6 +206,64 @@ func add_children_to_input_file(node *Node) error {
 	return nil
 }
 
+func remove_from_parent_input_file(node *Node) error {
+	parent := node.get_parent()
+	if parent == nil {
+		return nil
+	}
+
+	composite_file, err := get_composite_file(parent.get_path())
+	if err != nil {
+		return nil
+	}
+
+	if composite_file == "" {
+		return nil
+	}
+
+	data, err := os.ReadFile(composite_file)
+	if err != nil {
+		return err
+	}
+
+	content := string(data)
+	lines := strings.Split(content, "\n")
+	filteredLines := make([]string, 0, len(lines)) // Create a new slice for filtered lines
+
+	lineToRemove := fmt.Sprintf("%% %v", node.get_title()) // The line to match
+
+	lineFound := false
+	for _, line := range lines {
+		if strings.Contains(line, lineToRemove) {
+			lineFound = true
+			continue // Skip this line, effectively removing it
+		}
+		filteredLines = append(filteredLines, line)
+	}
+
+	if !lineFound {
+		return nil
+	}
+
+	// Join the filtered lines back into a single string
+	updatedContent := strings.Join(filteredLines, "\n")
+
+	// Open the file in write mode with truncation to ensure all old content is removed
+	file, err := os.OpenFile(composite_file, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to open file for writing: %w", err)
+	}
+	defer file.Close()
+
+	// Write the updated content back to the composite file
+	_, err = file.WriteString(updatedContent)
+	if err != nil {
+		return fmt.Errorf("failed to write updated content to '%v': %w", composite_file, err)
+	}
+
+	return nil
+}
+
 func get_composite_file(path string) (string, error) {
 
 	if filepath.Ext(path) == CFG_NOTE_FILETYPE {

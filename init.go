@@ -95,3 +95,30 @@ func build_tree(parent *Node) (*Node, error) {
 
 	return nil, nil
 }
+
+func validate_currents(current *Node) (bool, string) {
+
+	if current.get_depth() >= len(CFG_GROUP_DEPTH)-1 {
+		return true, ""
+	}
+
+	if len(current.get_children()) < 1 {
+		return true, ""
+	}
+
+	current_child, _ := get_config_value(CFG_CURRENT_NODE_PREFIX + CFG_DEPTH_GROUP[current.get_depth()+1])
+
+	for _, child := range current.get_children() {
+		if child.get_title() != current_child {
+			continue
+		}
+
+		if ok, errgroup := validate_currents(child); ok {
+			return true, ""
+		} else {
+			return false, errgroup
+		}
+	}
+
+	return false, CFG_DEPTH_GROUP[current.get_depth()+1]
+}

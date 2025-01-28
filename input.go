@@ -25,9 +25,15 @@ func handle_input() {
 		switch args[0] {
 
 		case "current":
-			err := set_currents_form(CFG_DEPTH_GROUP[0])
-			if err != nil {
-				log.Fatal(err)
+			if len(args) > 1 {
+				if valid_node_group(args[1]) {
+					set_currents_form(args[1])
+				}
+			} else {
+				err := set_currents_form(CFG_DEPTH_GROUP[0])
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 
 		case "new":
@@ -38,6 +44,13 @@ func handle_input() {
 						fmt.Println(err)
 						return
 					}
+				}
+			}
+
+		case "remove":
+			if len(args) > 1 {
+				if err := node_deletion_form(args[1]); err != nil {
+					log.Fatal(err)
 				}
 			}
 
@@ -55,23 +68,40 @@ func handle_input() {
 			}
 
 		case "tree":
-
-			tree := tree.New().Root("root")
-
-			for _, node := range Nodes {
-				if node.get_depth() == 0 {
-					tr, err := show_branch(node)
+			if len(args) > 1 {
+				if valid_node_group(args[1]) {
+					current_node_title, err := get_config_value(CFG_CURRENT_NODE_PREFIX + args[1])
 					if err != nil {
 						log.Fatal(err)
 						return
 					}
-
-					tree.Child(tr)
+					tree := tree.New().Root(current_node_title)
+					for _, node := range Nodes {
+						if node.get_title() == current_node_title {
+							tree.Child(show_branch(node))
+							break
+						}
+					}
+					fmt.Println(tree_style.Render(tree.String()))
 				}
+			} else {
+
+				tree := tree.New().Root("root")
+
+				for _, node := range Nodes {
+					if node.get_depth() == 0 {
+						tr, err := show_branch(node)
+						if err != nil {
+							log.Fatal(err)
+							return
+						}
+
+						tree.Child(tr)
+					}
+				}
+
+				fmt.Println(tree_style.Render(tree.String()))
 			}
-
-			fmt.Println(tree.String())
-
 		}
 	}
 
